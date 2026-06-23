@@ -256,6 +256,37 @@ report_dt, channel, product, sessions, clicks, conversions, revenue
 
 ---
 
+### Как работает CSS в отчётах
+
+Отчёт — это HTML-фрагмент, который платформа вставляет на страницу через innerHTML.
+
+**Три уровня CSS:**
+
+1. **Переменные и базовые классы** из `style.css` платформы — всегда доступны
+   (`.card`, `.button`, `var(--accent)` и т.д.)
+
+2. **Утилитарные классы отчётов** — добавлены в `style.css`, всегда доступны без объявления:
+   `.summary-card`, `.summary-label`, `.summary-value`, `.summary-sub`,
+   `.conv-high`, `.conv-mid`, `.conv-low`, `.bar-track`, `.bar-fill`
+
+3. **Свои классы** — объявляй `<style>` блоком прямо в выводе скрипта.
+   В отличие от `<script>`, тег `<style>` через innerHTML браузер применяет корректно:
+   ```python
+   print("""
+   <style>
+     .my-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); }
+     .my-badge    { background: var(--accent-soft); color: var(--accent);
+                    border-radius: 999px; padding: 2px 10px; font-size: 0.78rem; }
+   </style>
+   <div class="my-badge">Текст</div>
+   """)
+   ```
+   Этот паттерн работает одинаково в превью и на платформе.
+
+**Правило**: любой CSS-класс, которого нет в `style.css`, объявляй через `<style>` в начале вывода скрипта. Никогда не рассчитывай на классы, которые не видны в `style.css` этого репозитория.
+
+---
+
 ### CSS-переменные и классы платформы
 
 Полный CSS платформы — в файле [`style.css`](style.css) этого репозитория.
