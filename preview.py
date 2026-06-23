@@ -79,91 +79,128 @@ def _check_imports(script_path: Path) -> list[str]:
         unknown.append(pkg)
     return unknown
 
-# ── Стили платформы MJ (встроенные для автономного превью) ────────────────────
-PLATFORM_CSS = """
-:root {
-  --bg:         #f8fafc;
-  --surface:    #ffffff;
-  --border:     #e2e8f0;
-  --text:       #1e293b;
-  --text-muted: #64748b;
-  --accent:     #3b82f6;
+# ── Точные стили платформы MJ ─────────────────────────────────────────────────
+# Скопировано из static/style.css — изменяй только вместе с оригиналом
+PLATFORM_CSS = """\
+:root {{
+    --bg: #ffffff;
+    --surface: #f4f8f4;
+    --surface-strong: #e6f0e6;
+    --text: #202a20;
+    --text-muted: #4d5b4d;
+    --accent: #2f7a2f;
+    --accent-soft: #d9efdc;
+    --border: #c7d5c7;
+    --button-text: #ffffff;
+    --shadow: rgba(45, 120, 45, 0.16);
+}}
+body.dark {{
+    --bg: #111111;
+    --surface: #1c1c1c;
+    --surface-strong: #262626;
+    --text: #f5f1ec;
+    --text-muted: #c8c1b9;
+    --accent: #e07618;
+    --accent-soft: #3f2a11;
+    --border: #3a3a3a;
+    --button-text: #111111;
+    --shadow: rgba(0, 0, 0, 0.4);
+}}
+* {{ box-sizing: border-box; }}
+html, body {{ min-height: 100%; }}
+body {{
+    margin: 0;
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:
+        radial-gradient(circle at top left, rgba(75,155,75,0.12), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(46,120,46,0.14), transparent 25%),
+        var(--bg);
+    color: var(--text);
+    transition: background 0.3s ease, color 0.3s ease;
+}}
+body.dark {{
+    background:
+        radial-gradient(circle at top left, rgba(224,122,29,0.12), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255,145,50,0.14), transparent 26%),
+        var(--bg);
+}}
+.page {{ max-width: 1440px; margin: 0 auto; padding: 28px 20px 40px; }}
+header {{
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; padding: 20px 24px; margin-bottom: 28px;
+    border: 1px solid var(--border); border-radius: 18px;
+    background: var(--surface);
+    box-shadow: 0 18px 50px -40px var(--shadow);
+}}
+header h1 {{ margin: 0; font-size: clamp(1.5rem, 2vw, 2.2rem); }}
+.header-actions {{ display: flex; align-items: center; gap: 12px; }}
+.button, .theme-toggle {{
+    cursor: pointer; border: none; border-radius: 999px;
+    padding: 12px 18px; font-weight: 600; text-decoration: none;
+    transition: transform 0.2s ease, background-color 0.25s ease, color 0.25s ease;
+    font-family: inherit; font-size: 0.9rem;
+}}
+.button:hover, .theme-toggle:hover {{ transform: translateY(-1px); }}
+.button {{ background: var(--accent); color: var(--button-text); }}
+.theme-toggle {{ background: rgba(255,255,255,0.1); color: var(--text); border: 1px solid var(--border); }}
+.card {{
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 22px; padding: 24px; margin-bottom: 24px;
+    box-shadow: 0 20px 55px -45px var(--shadow);
+}}
+.run-btn {{
+    padding: 8px 22px; border-radius: 10px; border: none;
+    background: var(--accent); color: var(--button-text);
+    font-family: inherit; font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; transition: opacity 0.15s;
+}}
+.run-btn:hover {{ opacity: 0.85; }}
+.run-btn:disabled {{ opacity: 0.5; cursor: not-allowed; }}
+.preview-badge {{
+    display: inline-block; background: var(--accent-soft); color: var(--accent);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 3px 10px; font-size: 0.75rem; font-weight: 600; margin-top: 6px;
+}}
+#report-status {{ color: var(--text-muted); font-style: italic; font-size: 0.9rem; margin-bottom: 16px; min-height: 18px; }}
+#report-error {{
+    padding: 12px 16px; border-radius: 12px; font-size: 0.88rem;
+    background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b;
+    margin-bottom: 16px; white-space: pre-wrap; font-family: monospace;
+}}
+body.dark #report-error {{ background: #3a1818; border-color: #7f3535; color: #e07070; }}
+#report-output {{ width: 100%; }}
+table {{ border-collapse: collapse; }}
+.summary-card {{
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 18px 22px;
+    display: inline-block; min-width: 160px;
+}}
+.summary-label {{ font-size: 0.78rem; color: var(--text-muted); }}
+.summary-value {{ font-size: 1.6rem; font-weight: 700; }}
+.summary-sub   {{ font-size: 0.78rem; color: var(--text-muted); }}
+.conv-high {{ background:#dcfce7;color:#166534;padding:2px 8px;border-radius:999px;font-size:0.78rem; }}
+.conv-mid  {{ background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:999px;font-size:0.78rem; }}
+.conv-low  {{ background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px;font-size:0.78rem; }}
+.bar-track {{ background:var(--border);border-radius:999px;height:10px;overflow:hidden; }}
+.bar-fill  {{ background:var(--accent);height:100%;border-radius:999px; }}
+"""
+
+# theme.js логика — встроена напрямую (не требует сервера)
+THEME_JS = """\
+function setTheme(t) {
+    document.body.classList.toggle('dark', t === 'dark');
+    localStorage.setItem('theme', t);
+    const b = document.getElementById('themeToggleButton');
+    if (b) { b.textContent = t === 'dark' ? '🌙' : '☀️'; }
 }
-body.dark {
-  --bg:         #0f172a;
-  --surface:    #1e293b;
-  --border:     #334155;
-  --text:       #f1f5f9;
-  --text-muted: #94a3b8;
-  --accent:     #60a5fa;
+function toggleTheme() {
+    setTheme(document.body.classList.contains('dark') ? 'light' : 'dark');
 }
-* { box-sizing: border-box; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  margin: 0;
-  padding: 32px;
-  font-size: 14px;
-  line-height: 1.6;
-}
-.preview-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 28px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.preview-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-muted);
-}
-.preview-badge {
-  background: #fef3c7;
-  color: #92400e;
-  border: 1px solid #fde68a;
-  border-radius: 6px;
-  padding: 3px 10px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-.theme-btn {
-  padding: 6px 14px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  cursor: pointer;
-  font-size: 0.82rem;
-}
-.summary-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 18px 22px;
-  display: inline-block;
-  min-width: 160px;
-}
-.summary-label { font-size: 0.78rem; color: var(--text-muted); }
-.summary-value { font-size: 1.6rem; font-weight: 700; }
-.summary-sub   { font-size: 0.78rem; color: var(--text-muted); }
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 16px;
-}
-table { border-collapse: collapse; }
-.conv-high { background:#dcfce7;color:#166534;padding:2px 8px;border-radius:999px;font-size:0.78rem; }
-.conv-mid  { background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:999px;font-size:0.78rem; }
-.conv-low  { background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px;font-size:0.78rem; }
-.bar-track { background:var(--border);border-radius:999px;height:10px;overflow:hidden; }
-.bar-fill  { background:var(--accent);height:100%;border-radius:999px; }
+window.addEventListener('DOMContentLoaded', function() {
+    const saved = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setTheme(saved || (prefersDark ? 'dark' : 'light'));
+});
 """
 
 HTML_TEMPLATE = """\
@@ -171,23 +208,32 @@ HTML_TEMPLATE = """\
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Preview: {script_name}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>📊 {report_title}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>{css}</style>
 </head>
 <body>
-  <div class="preview-header">
+<div class="page">
+  <header>
     <div>
-      <div class="preview-title">📋 Preview: {script_name}</div>
-      {data_badge}
+      <h1>📊 {report_title}</h1>
+      <p style="margin:4px 0 0;color:var(--text-muted);font-size:0.88rem;">{report_desc}</p>
     </div>
-    <div style="display:flex;gap:8px;align-items:center;">
+    <div class="header-actions">
       <span class="preview-badge">⚡ Локальный превью</span>
-      <button class="theme-btn" onclick="document.body.classList.toggle('dark')">🌙 Тема</button>
+      <button class="button" onclick="location.reload()">▶ Перезапустить</button>
+      <button id="themeToggleButton" class="theme-toggle" type="button" onclick="toggleTheme()">☀️</button>
     </div>
-  </div>
-  <div id="report-output">
-{output}
-  </div>
+  </header>
+
+  <div id="report-status"></div>
+  <div id="report-error" style="display:{error_display};">{error_text}</div>
+  <div id="report-output">{output}</div>
+</div>
+<script>{theme_js}</script>
 </body>
 </html>
 """
@@ -247,27 +293,32 @@ def main():
         print("❌ Превышено время выполнения (60 сек)", file=sys.stderr)
         sys.exit(1)
 
+    report_output = ""
+    error_display = "none"
+    error_text    = ""
+
     if result.returncode != 0:
         print("❌ Скрипт завершился с ошибкой:", file=sys.stderr)
         print(result.stderr, file=sys.stderr)
-        # Показываем ошибку в браузере тоже
-        err_html = f"<pre style='color:#dc2626;background:#fef2f2;padding:16px;border-radius:8px;'>{result.stderr}</pre>"
-        report_output = err_html
+        error_display = "block"
+        error_text    = result.stderr.strip()
     else:
         report_output = result.stdout
         if result.stderr:
             print("⚠ Stderr:", result.stderr, file=sys.stderr)
 
     # ── Оборачиваем в HTML ────────────────────────────────────────────────────
-    data_badge = ""
-    if data_path:
-        data_badge = f'<div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">📂 {data_path.name}</div>'
+    report_title = script_path.stem.replace("_", " ").title()
+    report_desc  = f"📂 {data_path.name}" if data_path else "Источник данных не указан"
 
     html_content = HTML_TEMPLATE.format(
-        script_name=script_path.name,
-        css=PLATFORM_CSS,
-        data_badge=data_badge,
-        output=report_output,
+        report_title  = report_title,
+        report_desc   = report_desc,
+        css           = PLATFORM_CSS,
+        theme_js      = THEME_JS,
+        error_display = error_display,
+        error_text    = error_text,
+        output        = report_output,
     )
 
     # ── Сохраняем и открываем ─────────────────────────────────────────────────
