@@ -260,7 +260,9 @@ HTML_TEMPLATE = """\
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>%%CSS%%</style>
+  <style>%%CSS%%
+#report-status { color: var(--text-muted); font-style: italic; font-size: 0.9rem; margin-bottom: 16px; min-height: 18px; }
+  </style>
 </head>
 <body>
 <div class="page">
@@ -276,6 +278,7 @@ HTML_TEMPLATE = """\
     </div>
   </header>
 
+  <div id="report-status"></div>
   <div id="report-error" style="display:%%ERROR_DISPLAY%%;">%%ERROR_TEXT%%</div>
   <div id="report-output">%%OUTPUT%%</div>
 </div>
