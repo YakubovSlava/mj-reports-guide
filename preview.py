@@ -13,11 +13,71 @@
 
 import sys
 import os
+import re
 import subprocess
 import tempfile
 import webbrowser
 import argparse
 from pathlib import Path
+
+# ── Разрешённые пакеты (из requirements.txt) ─────────────────────────────────
+_REQUIREMENTS_FILE = Path(__file__).parent / "requirements.txt"
+
+def _load_allowed_packages() -> set[str]:
+    """Читает requirements.txt и возвращает нижнерегистровые имена пакетов."""
+    allowed = set()
+    if not _REQUIREMENTS_FILE.exists():
+        return allowed
+    for line in _REQUIREMENTS_FILE.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        # "pandas==2.3.3" → "pandas"
+        name = re.split(r"[=<>!;\s]", line)[0].lower().replace("-", "_")
+        if name:
+            allowed.add(name)
+    return allowed
+
+
+# Стандартные модули — всегда разрешены (неполный, но практический список)
+_STDLIB = {
+    "sys", "os", "re", "io", "csv", "json", "html", "math", "time", "abc",
+    "ast", "copy", "enum", "functools", "hashlib", "heapq", "inspect",
+    "itertools", "logging", "operator", "pathlib", "pickle", "pprint",
+    "random", "shutil", "signal", "statistics", "string", "struct",
+    "subprocess", "tempfile", "textwrap", "threading", "traceback", "typing",
+    "unicodedata", "unittest", "urllib", "uuid", "warnings", "weakref",
+    "datetime", "calendar", "collections", "contextlib", "dataclasses",
+    "decimal", "fractions", "gc", "glob", "gzip", "http", "importlib",
+    "platform", "socket", "sqlite3", "tarfile", "types", "zipfile", "zlib",
+    "__future__", "builtins",
+}
+
+
+def _check_imports(script_path: Path) -> list[str]:
+    """
+    Статически парсит импорты скрипта и возвращает список пакетов,
+    которых нет ни в stdlib, ни в requirements.txt.
+    """
+    allowed = _load_allowed_packages()
+    source = script_path.read_text(encoding="utf-8", errors="ignore")
+
+    imported = set()
+    for m in re.finditer(
+        r"^\s*(?:import|from)\s+([a-zA-Z_][a-zA-Z0-9_]*)", source, re.MULTILINE
+    ):
+        top = m.group(1).lower()
+        imported.add(top)
+
+    unknown = []
+    for pkg in sorted(imported):
+        if pkg in _STDLIB or pkg in allowed:
+            continue
+        # некоторые пакеты устанавливаются под другим именем (e.g. sklearn → scikit_learn)
+        if pkg.replace("_", "-") in {p.replace("_", "-") for p in allowed}:
+            continue
+        unknown.append(pkg)
+    return unknown
 
 # ── Стили платформы MJ (встроенные для автономного превью) ────────────────────
 PLATFORM_CSS = """
@@ -157,6 +217,17 @@ def main():
         if not data_path.exists():
             print(f"❌ Файл данных не найден: {data_path}", file=sys.stderr)
             sys.exit(1)
+
+    # ── Проверяем импорты ────────────────────────────────────────────────────
+    unknown_pkgs = _check_imports(script_path)
+    if unknown_pkgs:
+        print(
+            f"⚠  Обнаружены пакеты, которых нет в requirements.txt: "
+            f"{', '.join(unknown_pkgs)}\n"
+            "   Скрипт может не запуститься на платформе. "
+            "Продолжаем локальный запуск…",
+            file=sys.stderr,
+        )
 
     # ── Запускаем скрипт ──────────────────────────────────────────────────────
     cmd = [sys.executable, str(script_path)]
