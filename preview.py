@@ -79,10 +79,20 @@ def _check_imports(script_path: Path) -> list[str]:
         unknown.append(pkg)
     return unknown
 
-# ── Стили платформы MJ ────────────────────────────────────────────────────────
-# Скопировано из static/style.css — изменяй только вместе с оригиналом.
-# Используем обычные { } — подстановка через replace(), не format().
-PLATFORM_CSS = """
+_STYLE_FILE = Path(__file__).parent / "style.css"
+
+def _load_platform_css() -> str:
+    """Читает style.css из сабмодуля. Fallback — встроенная копия."""
+    if _STYLE_FILE.exists():
+        base = _STYLE_FILE.read_text(encoding="utf-8")
+    else:
+        base = _PLATFORM_CSS_FALLBACK
+    # Добавляем классы специфичные для report-output, которых нет в base style.css
+    return base + _REPORT_EXTRA_CSS
+
+
+# ── Встроенный fallback (на случай если style.css удалён) ─────────────────────
+_PLATFORM_CSS_FALLBACK = """
 :root {
     --bg: #ffffff;
     --surface: #f4f8f4;
@@ -170,6 +180,42 @@ header h1 { margin: 0; font-size: clamp(1.5rem, 2vw, 2.2rem); }
 body.dark #report-error { background: #3a1818; border-color: #7f3535; color: #e07070; }
 #report-output { width: 100%; }
 table { border-collapse: collapse; }
+.summary-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 18px 22px;
+    display: inline-block; min-width: 160px;
+}
+.summary-label { font-size: 0.78rem; color: var(--text-muted); }
+.summary-value { font-size: 1.6rem; font-weight: 700; }
+.summary-sub   { font-size: 0.78rem; color: var(--text-muted); }
+.conv-high { background:#dcfce7;color:#166534;padding:2px 8px;border-radius:999px;font-size:0.78rem; }
+.conv-mid  { background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:999px;font-size:0.78rem; }
+.conv-low  { background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px;font-size:0.78rem; }
+.bar-track { background:var(--border);border-radius:999px;height:10px;overflow:hidden; }
+.bar-fill  { background:var(--accent);height:100%;border-radius:999px; }
+"""
+
+# ── Дополнительные классы для превью (шапка + отчётный контейнер) ─────────────
+_REPORT_EXTRA_CSS = """
+.run-btn {
+    padding: 8px 22px; border-radius: 10px; border: none;
+    background: var(--accent); color: var(--button-text);
+    font-family: inherit; font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; transition: opacity 0.15s;
+}
+.run-btn:hover { opacity: 0.85; }
+.preview-badge {
+    display: inline-block; background: var(--accent-soft); color: var(--accent);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 3px 10px; font-size: 0.75rem; font-weight: 600; margin-top: 6px;
+}
+#report-error {
+    padding: 12px 16px; border-radius: 12px; font-size: 0.88rem;
+    background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b;
+    margin-bottom: 16px; white-space: pre-wrap; font-family: monospace;
+}
+body.dark #report-error { background: #3a1818; border-color: #7f3535; color: #e07070; }
+#report-output { width: 100%; }
 .summary-card {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 16px; padding: 18px 22px;
@@ -326,7 +372,7 @@ def main():
     html_content = _render(
         title         = report_title,
         desc          = report_desc,
-        css           = PLATFORM_CSS,
+        css           = _load_platform_css(),
         theme_js      = THEME_JS,
         error_display = error_display,
         error_text    = error_text,

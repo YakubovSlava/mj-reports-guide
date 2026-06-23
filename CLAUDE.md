@@ -256,18 +256,30 @@ report_dt, channel, product, sessions, clicks, conversions, revenue
 
 ---
 
-### CSS-переменные платформы
+### CSS-переменные и классы платформы
 
+Полный CSS платформы — в файле [`style.css`](style.css) этого репозитория.
+Читай его напрямую — там все переменные, классы и их значения.
+
+Ключевые переменные:
 ```css
-var(--bg)          /* фон страницы        */
-var(--surface)     /* фон карточек        */
-var(--border)      /* граница             */
-var(--text)        /* основной текст      */
-var(--text-muted)  /* второстепенный текст */
-var(--accent)      /* акцентный цвет      */
+var(--bg)           /* фон страницы                    */
+var(--surface)      /* фон карточек                    */
+var(--surface-strong) /* усиленный фон                 */
+var(--border)       /* граница                         */
+var(--text)         /* основной текст                  */
+var(--text-muted)   /* второстепенный текст            */
+var(--accent)       /* акцент (зелёный / оранжевый в dark) */
+var(--accent-soft)  /* мягкий акцент для фона бейджей  */
+var(--button-text)  /* цвет текста на кнопках          */
+var(--shadow)       /* тень карточек                   */
 ```
 
-Готовые классы: `.summary-card`, `.conv-high`, `.conv-mid`, `.conv-low`, `.bar-track`, `.bar-fill`
+Готовые классы из `style.css`: `.card`, `.button`, `.button-danger`, `.error`
+
+Классы специфичные для отчётов (добавляются в превью автоматически):
+`.summary-card`, `.summary-label`, `.summary-value`, `.summary-sub`,
+`.conv-high`, `.conv-mid`, `.conv-low`, `.bar-track`, `.bar-fill`
 
 ---
 
