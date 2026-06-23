@@ -79,10 +79,11 @@ def _check_imports(script_path: Path) -> list[str]:
         unknown.append(pkg)
     return unknown
 
-# ── Точные стили платформы MJ ─────────────────────────────────────────────────
-# Скопировано из static/style.css — изменяй только вместе с оригиналом
-PLATFORM_CSS = """\
-:root {{
+# ── Стили платформы MJ ────────────────────────────────────────────────────────
+# Скопировано из static/style.css — изменяй только вместе с оригиналом.
+# Используем обычные { } — подстановка через replace(), не format().
+PLATFORM_CSS = """
+:root {
     --bg: #ffffff;
     --surface: #f4f8f4;
     --surface-strong: #e6f0e6;
@@ -93,8 +94,8 @@ PLATFORM_CSS = """\
     --border: #c7d5c7;
     --button-text: #ffffff;
     --shadow: rgba(45, 120, 45, 0.16);
-}}
-body.dark {{
+}
+body.dark {
     --bg: #111111;
     --surface: #1c1c1c;
     --surface-strong: #262626;
@@ -105,10 +106,10 @@ body.dark {{
     --border: #3a3a3a;
     --button-text: #111111;
     --shadow: rgba(0, 0, 0, 0.4);
-}}
-* {{ box-sizing: border-box; }}
-html, body {{ min-height: 100%; }}
-body {{
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
     margin: 0;
     font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     background:
@@ -117,110 +118,110 @@ body {{
         var(--bg);
     color: var(--text);
     transition: background 0.3s ease, color 0.3s ease;
-}}
-body.dark {{
+}
+body.dark {
     background:
         radial-gradient(circle at top left, rgba(224,122,29,0.12), transparent 30%),
         radial-gradient(circle at bottom right, rgba(255,145,50,0.14), transparent 26%),
         var(--bg);
-}}
-.page {{ max-width: 1440px; margin: 0 auto; padding: 28px 20px 40px; }}
-header {{
+}
+.page { max-width: 1440px; margin: 0 auto; padding: 28px 20px 40px; }
+header {
     display: flex; align-items: center; justify-content: space-between;
     gap: 16px; padding: 20px 24px; margin-bottom: 28px;
     border: 1px solid var(--border); border-radius: 18px;
     background: var(--surface);
     box-shadow: 0 18px 50px -40px var(--shadow);
-}}
-header h1 {{ margin: 0; font-size: clamp(1.5rem, 2vw, 2.2rem); }}
-.header-actions {{ display: flex; align-items: center; gap: 12px; }}
-.button, .theme-toggle {{
+}
+header h1 { margin: 0; font-size: clamp(1.5rem, 2vw, 2.2rem); }
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.button, .theme-toggle {
     cursor: pointer; border: none; border-radius: 999px;
     padding: 12px 18px; font-weight: 600; text-decoration: none;
     transition: transform 0.2s ease, background-color 0.25s ease, color 0.25s ease;
     font-family: inherit; font-size: 0.9rem;
-}}
-.button:hover, .theme-toggle:hover {{ transform: translateY(-1px); }}
-.button {{ background: var(--accent); color: var(--button-text); }}
-.theme-toggle {{ background: rgba(255,255,255,0.1); color: var(--text); border: 1px solid var(--border); }}
-.card {{
+}
+.button:hover, .theme-toggle:hover { transform: translateY(-1px); }
+.button { background: var(--accent); color: var(--button-text); }
+.theme-toggle { background: rgba(255,255,255,0.1); color: var(--text); border: 1px solid var(--border); }
+.card {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 22px; padding: 24px; margin-bottom: 24px;
     box-shadow: 0 20px 55px -45px var(--shadow);
-}}
-.run-btn {{
+}
+.run-btn {
     padding: 8px 22px; border-radius: 10px; border: none;
     background: var(--accent); color: var(--button-text);
     font-family: inherit; font-size: 0.9rem; font-weight: 600;
     cursor: pointer; transition: opacity 0.15s;
-}}
-.run-btn:hover {{ opacity: 0.85; }}
-.run-btn:disabled {{ opacity: 0.5; cursor: not-allowed; }}
-.preview-badge {{
+}
+.run-btn:hover { opacity: 0.85; }
+.run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.preview-badge {
     display: inline-block; background: var(--accent-soft); color: var(--accent);
     border: 1px solid var(--border); border-radius: 8px;
     padding: 3px 10px; font-size: 0.75rem; font-weight: 600; margin-top: 6px;
-}}
-#report-status {{ color: var(--text-muted); font-style: italic; font-size: 0.9rem; margin-bottom: 16px; min-height: 18px; }}
-#report-error {{
+}
+#report-error {
     padding: 12px 16px; border-radius: 12px; font-size: 0.88rem;
     background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b;
     margin-bottom: 16px; white-space: pre-wrap; font-family: monospace;
-}}
-body.dark #report-error {{ background: #3a1818; border-color: #7f3535; color: #e07070; }}
-#report-output {{ width: 100%; }}
-table {{ border-collapse: collapse; }}
-.summary-card {{
+}
+body.dark #report-error { background: #3a1818; border-color: #7f3535; color: #e07070; }
+#report-output { width: 100%; }
+table { border-collapse: collapse; }
+.summary-card {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 16px; padding: 18px 22px;
     display: inline-block; min-width: 160px;
-}}
-.summary-label {{ font-size: 0.78rem; color: var(--text-muted); }}
-.summary-value {{ font-size: 1.6rem; font-weight: 700; }}
-.summary-sub   {{ font-size: 0.78rem; color: var(--text-muted); }}
-.conv-high {{ background:#dcfce7;color:#166534;padding:2px 8px;border-radius:999px;font-size:0.78rem; }}
-.conv-mid  {{ background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:999px;font-size:0.78rem; }}
-.conv-low  {{ background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px;font-size:0.78rem; }}
-.bar-track {{ background:var(--border);border-radius:999px;height:10px;overflow:hidden; }}
-.bar-fill  {{ background:var(--accent);height:100%;border-radius:999px; }}
+}
+.summary-label { font-size: 0.78rem; color: var(--text-muted); }
+.summary-value { font-size: 1.6rem; font-weight: 700; }
+.summary-sub   { font-size: 0.78rem; color: var(--text-muted); }
+.conv-high { background:#dcfce7;color:#166534;padding:2px 8px;border-radius:999px;font-size:0.78rem; }
+.conv-mid  { background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:999px;font-size:0.78rem; }
+.conv-low  { background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px;font-size:0.78rem; }
+.bar-track { background:var(--border);border-radius:999px;height:10px;overflow:hidden; }
+.bar-fill  { background:var(--accent);height:100%;border-radius:999px; }
 """
 
-# theme.js логика — встроена напрямую (не требует сервера)
-THEME_JS = """\
+# theme.js — встроен inline, не требует сервера
+THEME_JS = """
 function setTheme(t) {
     document.body.classList.toggle('dark', t === 'dark');
     localStorage.setItem('theme', t);
-    const b = document.getElementById('themeToggleButton');
+    var b = document.getElementById('themeToggleButton');
     if (b) { b.textContent = t === 'dark' ? '🌙' : '☀️'; }
 }
 function toggleTheme() {
     setTheme(document.body.classList.contains('dark') ? 'light' : 'dark');
 }
 window.addEventListener('DOMContentLoaded', function() {
-    const saved = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var saved = localStorage.getItem('theme');
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     setTheme(saved || (prefersDark ? 'dark' : 'light'));
 });
 """
 
+# Шаблон HTML — плейсхолдеры заменяются через str.replace(), не format()
 HTML_TEMPLATE = """\
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>📊 {report_title}</title>
+  <title>📊 %%REPORT_TITLE%%</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>{css}</style>
+  <style>%%CSS%%</style>
 </head>
 <body>
 <div class="page">
   <header>
     <div>
-      <h1>📊 {report_title}</h1>
-      <p style="margin:4px 0 0;color:var(--text-muted);font-size:0.88rem;">{report_desc}</p>
+      <h1>📊 %%REPORT_TITLE%%</h1>
+      <p style="margin:4px 0 0;color:var(--text-muted);font-size:0.88rem;">%%REPORT_DESC%%</p>
     </div>
     <div class="header-actions">
       <span class="preview-badge">⚡ Локальный превью</span>
@@ -229,14 +230,25 @@ HTML_TEMPLATE = """\
     </div>
   </header>
 
-  <div id="report-status"></div>
-  <div id="report-error" style="display:{error_display};">{error_text}</div>
-  <div id="report-output">{output}</div>
+  <div id="report-error" style="display:%%ERROR_DISPLAY%%;">%%ERROR_TEXT%%</div>
+  <div id="report-output">%%OUTPUT%%</div>
 </div>
-<script>{theme_js}</script>
+<script>%%THEME_JS%%</script>
 </body>
 </html>
 """
+
+
+def _render(title: str, desc: str, css: str, theme_js: str,
+            error_display: str, error_text: str, output: str) -> str:
+    return (HTML_TEMPLATE
+            .replace("%%REPORT_TITLE%%", title)
+            .replace("%%REPORT_DESC%%",  desc)
+            .replace("%%CSS%%",          css)
+            .replace("%%THEME_JS%%",     theme_js)
+            .replace("%%ERROR_DISPLAY%%", error_display)
+            .replace("%%ERROR_TEXT%%",   error_text)
+            .replace("%%OUTPUT%%",       output))
 
 
 def main():
@@ -311,9 +323,9 @@ def main():
     report_title = script_path.stem.replace("_", " ").title()
     report_desc  = f"📂 {data_path.name}" if data_path else "Источник данных не указан"
 
-    html_content = HTML_TEMPLATE.format(
-        report_title  = report_title,
-        report_desc   = report_desc,
+    html_content = _render(
+        title         = report_title,
+        desc          = report_desc,
         css           = PLATFORM_CSS,
         theme_js      = THEME_JS,
         error_display = error_display,
