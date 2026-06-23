@@ -348,6 +348,39 @@ print(f"<script>const DATA = {js_data};</script>")
 # далее JS-код с обработчиками onchange
 ```
 
+**Инициализация JS на платформе:**
+
+Отчёт вставляется в страницу через `innerHTML` — браузер **не выполняет** `<script>` из innerHTML
+напрямую. Платформа пересоздаёт теги `<script>` вручную и после этого диспатчит
+`DOMContentLoaded` повторно. Поэтому `addEventListener('DOMContentLoaded', ...)` работает.
+
+Рекомендуемый паттерн инициализации — вызов функции прямо в конце `<script>`:
+```python
+print("""
+<div id="my-output"></div>
+<script>
+const DATA = """ + json.dumps(rows, ensure_ascii=False) + """;
+
+function render() {
+    // строим HTML из DATA
+    document.getElementById('my-output').innerHTML = '...';
+}
+
+// Инициализация — прямой вызов, работает и через DOMContentLoaded
+document.addEventListener('DOMContentLoaded', render);
+render();  // на случай если DOM уже готов (страница уже загружена)
+</script>
+""")
+```
+
+Или короче — через IIFE (немедленно вызываемая функция), тогда не нужен `DOMContentLoaded` вовсе:
+```javascript
+(function() {
+    // весь код инициализации здесь
+    document.getElementById('my-output').innerHTML = '...';
+})();
+```
+
 ---
 
 ## Примеры
