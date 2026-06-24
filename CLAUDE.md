@@ -312,11 +312,35 @@ var(--button-text)  /* цвет текста на кнопках          */
 var(--shadow)       /* тень карточек                   */
 ```
 
-Готовые классы из `style.css`: `.card`, `.button`, `.button-danger`, `.error`
+Все классы уже объявлены в `style.css` — объявлять их в `<style>` внутри скрипта не нужно:
 
-Классы специфичные для отчётов (добавляются в превью автоматически):
-`.summary-card`, `.summary-label`, `.summary-value`, `.summary-sub`,
-`.conv-high`, `.conv-mid`, `.conv-low`, `.bar-track`, `.bar-fill`
+| Класс | Назначение |
+|-------|-----------|
+| `.card` | Карточка (surface-фон, border-radius 22px, тень) |
+| `.button` | Зелёная кнопка (round) |
+| `.button-danger` | Красная кнопка-ссылка |
+| `.error` | Блок ошибки (красный фон) |
+| `.kpi-grid` | Flex-строка для KPI-карточек |
+| `.kpi-card` | Карточка метрики (flex:1, min 180px) |
+| `.kpi-label` | Подпись над числом (uppercase) |
+| `.kpi-value` | Большое число (2rem, bold) |
+| `.kpi-sub` | Дополнительный текст под числом |
+| `.section-title` | Заголовок секции (1rem, bold, margin-bottom 16px) |
+| `select.rpt-sel` | Стилизованный dropdown |
+| `.rpt-table` | Таблица с разделителями строк и hover |
+| `.summary-card` | Компактная inline-карточка |
+| `.summary-label` | Подпись в summary-card |
+| `.summary-value` | Значение в summary-card (1.7rem) |
+| `.summary-sub` | Дополнительный текст в summary-card |
+| `.conv-high` | Зелёный бейдж (≥60%) |
+| `.conv-mid` | Жёлтый бейдж (30–60%) |
+| `.conv-low` | Красный бейдж (<30%) |
+| `.badge-green` | Зелёная пилюля |
+| `.badge-yellow` | Жёлтая пилюля |
+| `.badge-red` | Красная пилюля |
+| `.badge-blue` | Синяя пилюля |
+| `.bar-track` | Фон полоски прогресса |
+| `.bar-fill` | Заливка полоски (var(--accent)) |
 
 ---
 
@@ -395,4 +419,491 @@ render();  // на случай если DOM уже готов (страница
 - `simple_table.py` — базовая таблица из любого CSV
 - `funnel_report.py` — воронка с JS-фильтрами по каналу/продукту/месяцу
 - `complaints_top.py` — топ жалоб с группировкой и фильтрами
+- `complaints_report.py` — KPI-карточки + динамика (plotly) + топ-4 таблица
+
+---
+
+## Модуль для внешней LLM
+
+Этот раздел — готовая шпаргалка для слабой LLM, которая должна сгенерировать
+Python-скрипт отчёта **без знания всего остального контекста репозитория**.
+Вставляй его целиком как системный промпт перед запросом пользователя.
+
+---
+
+### Системный промпт (copy-paste для внешней LLM)
+
+```
+Ты — разработчик Python-скриптов для аналитической платформы.
+
+ТВОЯ ЗАДАЧА: написать Python-скрипт, который читает CSV-файл и выводит HTML-отчёт.
+
+══════════════════════════════════════════════════════
+ОБЯЗАТЕЛЬНЫЙ СКЕЛЕТ — КОПИРУЙ ТОЧНО, ЗАПОЛНЯЙ ЛОГИКУ
+══════════════════════════════════════════════════════
+
+import sys
+import io
+import csv
+import html
+import json
+from collections import defaultdict
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
+data_path = sys.argv[1] if len(sys.argv) > 1 else None
+if not data_path:
+    print("<p style='color:red'>Не задан источник данных.</p>")
+    sys.exit(0)
+
+rows = []
+try:
+    for sep in (";", ","):
+        with open(data_path, encoding="utf-8-sig", newline="") as f:
+            reader = list(csv.DictReader(f, delimiter=sep))
+        if reader and len(reader[0]) > 1:
+            rows = reader
+            break
+except Exception as e:
+    print(f"<p style='color:red'>Ошибка чтения: {html.escape(str(e))}</p>")
+    sys.exit(0)
+
+# === ТВОЯ ЛОГИКА ОБРАБОТКИ ДАННЫХ ===
+# Используй: pandas, numpy, plotly, matplotlib, csv, json, html, collections, datetime
+
+# === СЕРИАЛИЗАЦИЯ ДЛЯ JS (если нужны интерактивные фильтры) ===
+js_data = json.dumps(rows[:5000], ensure_ascii=False)   # не более 5000 строк
+
+# === ВЫВОД HTML ===
+print(f"""
+<style>
+  /* свои CSS-классы объявляй здесь */
+</style>
+
+<!-- HTML-контент отчёта -->
+
+<script>
+// DATA_START
+const DATA = {js_data};
+// DATA_END
+
+(function() {{
+  // JS-код инициализации
+}})();
+</script>
+""")
+
+════════════════
+ЖЁСТКИЕ ПРАВИЛА
+════════════════
+НЕ ДЕЛАЙ:
+- import requests / urllib / httpx / socket   (нет сетевого доступа)
+- open(..., 'w') или Path.write_*             (запись в файлы запрещена)
+- input() или getpass()                        (нет консоли)
+- sys.exit(1) при ошибке данных               (используй sys.exit(0))
+- CDN в Python-коде (только в выводимом HTML!)
+- Вставлять в HTML строки из данных без html.escape()
+
+ДЕЛАЙ:
+- Числа форматируй: f"{value:,}".replace(",", " ")
+- Все строки из данных: html.escape(str(value))
+- Данные для JS: json.dumps(rows[:5000], ensure_ascii=False)
+- Скрипт должен завершаться за 60 секунд
+
+════════════════════════════════════════════════
+ДОСТУПНЫЕ CSS-КЛАССЫ (объявлять в <style> НЕ НУЖНО)
+════════════════════════════════════════════════
+
+Компоновка и карточки:
+  .card            — белая карточка с тенью и скруглением
+  .kpi-grid        — flex-строка для KPI-карточек (auto-wrap)
+  .kpi-card        — карточка одной метрики (flex: 1, min 180px)
+  .kpi-label       — подпись над числом (мелкий uppercase текст)
+  .kpi-value       — большое число (2rem, bold)
+  .kpi-sub         — подпись под числом (мелкий текст)
+  .summary-card    — компактная карточка-метрика (inline-flex)
+  .summary-label   — подпись в summary-card
+  .summary-value   — значение в summary-card (1.7rem)
+  .summary-sub     — дополнительный текст в summary-card
+
+Таблица:
+  .rpt-table       — таблица с разделителями строк
+  (th и td внутри .rpt-table уже стилизованы)
+
+Бары:
+  .bar-track       — серый фон полоски прогресса (100%)
+  .bar-fill        — зелёная заливка (задавай ширину через style='width:X%')
+
+Бейджи с конверсией:
+  .conv-high       — зелёный (≥60%)
+  .conv-mid        — жёлтый (30–60%)
+  .conv-low        — красный (<30%)
+
+Цветные бейджи-пилюли:
+  .badge-green     — зелёный
+  .badge-yellow    — жёлтый
+  .badge-red       — красный
+  .badge-blue      — синий
+
+Фильтры и кнопки:
+  select.rpt-sel   — стилизованный <select> под цвет платформы
+  .button          — зелёная кнопка (border-radius 999px)
+  .button-danger   — красная кнопка-ссылка
+  .error           — блок ошибки (красный фон)
+
+Заголовок секции:
+  .section-title   — h-уровень внутри отчёта (font-weight 600, margin-bottom 16px)
+
+════════════════════════════════════════════════
+CSS-ПЕРЕМЕННЫЕ (используй в style='...' и <style>)
+════════════════════════════════════════════════
+var(--bg)             фон страницы
+var(--surface)        фон карточек
+var(--surface-strong) усиленный фон (hover и т.п.)
+var(--text)           основной цвет текста
+var(--text-muted)     второстепенный текст (подписи, подсказки)
+var(--accent)         акцент (зелёный в light, оранжевый в dark)
+var(--accent-soft)    мягкий фон для бейджей
+var(--border)         цвет границ
+var(--shadow)         тень карточек
+var(--button-text)    цвет текста на кнопках
+```
+
+---
+
+### Минимальный рабочий шаблон
+
+Это полный скрипт с одной KPI-карточкой и таблицей — отправная точка для LLM:
+
+```python
+import sys, io, csv, html, json
+from collections import defaultdict
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
+data_path = sys.argv[1] if len(sys.argv) > 1 else None
+if not data_path:
+    print("<p style='color:red'>Не задан источник данных.</p>")
+    sys.exit(0)
+
+rows = []
+try:
+    for sep in (";", ","):
+        with open(data_path, encoding="utf-8-sig", newline="") as f:
+            reader = list(csv.DictReader(f, delimiter=sep))
+        if reader and len(reader[0]) > 1:
+            rows = reader
+            break
+except Exception as e:
+    print(f"<p style='color:red'>Ошибка: {html.escape(str(e))}</p>")
+    sys.exit(0)
+
+# ── Подставь свою логику ──────────────────────────────────────────────────────
+total = len(rows)
+groups: dict = defaultdict(int)
+for r in rows:
+    groups[r.get("prd", "—")] += int(float(r.get("sum_cnt", 0) or 0))
+top4 = sorted(groups.items(), key=lambda x: x[1], reverse=True)[:4]
+top4_max = top4[0][1] if top4 else 1
+
+# ── Строки таблицы ────────────────────────────────────────────────────────────
+trs = ""
+for i, (label, cnt) in enumerate(top4):
+    bar_w = int(cnt / top4_max * 100)
+    trs += f"""<tr>
+      <td style='color:var(--text-muted);'>{i + 1}</td>
+      <td>{html.escape(label)}</td>
+      <td style='font-weight:700;'>{cnt:,}</td>
+      <td style='min-width:120px;'>
+        <div class='bar-track'><div class='bar-fill' style='width:{bar_w}%'></div></div>
+      </td>
+    </tr>"""
+
+print(f"""
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-label">ЗАПИСЕЙ В ФАЙЛЕ</div>
+    <div class="kpi-value">{total:,}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="section-title">Топ-4 по сумме</div>
+  <table class="rpt-table">
+    <thead><tr><th>#</th><th>Группа</th><th>Сумма</th><th></th></tr></thead>
+    <tbody>{trs}</tbody>
+  </table>
+</div>
+""")
+```
+
+---
+
+### Каталог UI-компонентов с кодом
+
+#### KPI-карточки (3 в ряд)
+
+```python
+# Заранее вычисляй значения в Python, здесь только вывод
+print(f"""
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-label">ЖАЛОБЫ</div>
+    <div class="kpi-value" style="color:#ef4444">{complaints:,}</div>
+    <div class="kpi-sub">за выбранный период</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">КОНСУЛЬТАЦИИ</div>
+    <div class="kpi-value" style="color:#3b82f6">{consult:,}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">ИТОГО</div>
+    <div class="kpi-value" style="color:var(--accent)">{total:,}</div>
+  </div>
+</div>
+""")
+```
+
+Если карточки должны **обновляться при смене фильтра** — оставь значения пустыми
+и заполни через JS:
+```html
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-label">ЖАЛОБЫ</div>
+    <div class="kpi-value" id="kpi-complaints" style="color:#ef4444">—</div>
+  </div>
+  ...
+</div>
+```
+```javascript
+function update() {
+  const month = document.getElementById('sel-month').value;
+  let cnt = 0;
+  DATA.forEach(r => { if (r._month === month) cnt += +r.sum_cnt; });
+  document.getElementById('kpi-complaints').textContent = cnt.toLocaleString('ru-RU');
+}
+```
+
+---
+
+#### Dropdown-фильтр
+
+```python
+months = sorted({r.get("report_dt", "")[:7] for r in rows if r.get("report_dt")}, reverse=True)
+def_month = months[0] if months else ""
+
+opts = "".join(
+    f'<option value="{m}"{"selected" if m == def_month else ""}>{m}</option>'
+    for m in months
+)
+print(f"""
+<div style="display:flex;gap:12px;align-items:center;margin-bottom:20px;">
+  <span style="font-size:.85rem;color:var(--text-muted);font-weight:500;">Период:</span>
+  <select class="rpt-sel" id="sel-month" onchange="update()">
+    {opts}
+  </select>
+</div>
+""")
+```
+
+---
+
+#### График динамики — Chart.js через CDN
+
+Chart.js проще для LLM-генерации, чем plotly: не требует Python-импорта,
+данные прямо в JS, CDN-скрипт подключается в HTML-фрагменте.
+
+```python
+import json
+
+labels_js = json.dumps(["Янв 25", "Фев 25", "Мар 25", "Апр 25"], ensure_ascii=False)
+values_js = json.dumps([120, 145, 98, 167])
+
+print(f"""
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+
+<div class="card">
+  <div class="section-title">Динамика</div>
+  <canvas id="dyn-chart" height="120"></canvas>
+</div>
+
+<script>
+(function() {{
+  var accent = getComputedStyle(document.documentElement)
+                 .getPropertyValue('--accent').trim() || '#2f7a2f';
+  new Chart(document.getElementById('dyn-chart').getContext('2d'), {{
+    type: 'line',
+    data: {{
+      labels: {labels_js},
+      datasets: [{{
+        label: 'Обращения',
+        data: {values_js},
+        borderColor: accent,
+        backgroundColor: 'rgba(47,122,47,0.07)',
+        fill: true,
+        tension: 0.35,
+        borderWidth: 2,
+        pointRadius: 3,
+      }}]
+    }},
+    options: {{
+      responsive: true,
+      plugins: {{ legend: {{ display: false }} }},
+      scales: {{
+        x: {{ grid: {{ display: false }}, ticks: {{ font: {{ size: 11 }} }} }},
+        y: {{ grid: {{ color: 'rgba(128,128,128,0.1)' }}, ticks: {{ font: {{ size: 11 }} }} }}
+      }}
+    }}
+  }});
+}})();
+</script>
+""")
+```
+
+Для **Chart.js со столбцами** замени `type: 'line'` на `type: 'bar'` и убери `fill`/`tension`.
+
+---
+
+#### Паттерн DATA-маркеров (обязателен при JS-фильтрах)
+
+Помещай ВСЕ JS-данные в один именованный блок с маркерами. Это позволяет системе
+заменить синтетику реальными данными без перегенерации HTML:
+
+```python
+import json
+
+# Готовим только нужные поля — не сериализуй весь row если он большой
+slim_rows = [
+    {"month": r.get("report_dt", "")[:7], "flag": r.get("toxic_flag", ""), "cnt": int(r.get("sum_cnt", 0) or 0)}
+    for r in rows
+]
+js_data = json.dumps(slim_rows[:5000], ensure_ascii=False)
+
+print(f"""
+<script>
+// DATA_START
+const DATA = {js_data};
+// DATA_END
+
+(function() {{
+  // Используй только DATA, не дублируй данные в других переменных
+  var total = DATA.reduce(function(s, r) {{ return s + r.cnt; }}, 0);
+  document.getElementById('kpi-total').textContent = total.toLocaleString('ru-RU');
+}})();
+</script>
+""")
+```
+
+---
+
+#### Интерактивная таблица с фильтром — полный пример
+
+```python
+import sys, io, csv, html, json
+from collections import defaultdict
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
+data_path = sys.argv[1] if len(sys.argv) > 1 else None
+if not data_path:
+    print("<p style='color:red'>Не задан источник данных.</p>")
+    sys.exit(0)
+
+rows = []
+try:
+    for sep in (";", ","):
+        with open(data_path, encoding="utf-8-sig", newline="") as f:
+            reader = list(csv.DictReader(f, delimiter=sep))
+        if reader and len(reader[0]) > 1:
+            rows = reader
+            break
+except Exception as e:
+    print(f"<p style='color:red'>Ошибка: {html.escape(str(e))}</p>")
+    sys.exit(0)
+
+for r in rows:
+    r["_month"] = r.get("report_dt", "")[:7]
+    try:
+        r["sum_cnt"] = int(float(r.get("sum_cnt", 0) or 0))
+    except (ValueError, TypeError):
+        r["sum_cnt"] = 0
+
+months = sorted({r["_month"] for r in rows if r["_month"]}, reverse=True)
+def_month = months[0] if months else ""
+
+month_opts = "".join(
+    f'<option value="{m}"{"selected" if m == def_month else ""}'
+    f'>{html.escape(m)}</option>'
+    for m in months
+)
+
+slim = [{"month": r["_month"], "flag": r.get("toxic_flag",""), "cnt": r["sum_cnt"]} for r in rows]
+js_data = json.dumps(slim[:5000], ensure_ascii=False)
+
+print(f"""
+<div style="display:flex;gap:12px;align-items:center;margin-bottom:24px;">
+  <span style="font-size:.85rem;color:var(--text-muted);">Период:</span>
+  <select class="rpt-sel" id="sel-month" onchange="rebuild()">
+    {month_opts}
+  </select>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-label">ЖАЛОБЫ</div>
+    <div class="kpi-value" id="kpi-c" style="color:#ef4444">—</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">КОНСУЛЬТАЦИИ</div>
+    <div class="kpi-value" id="kpi-k" style="color:#3b82f6">—</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">ИТОГО</div>
+    <div class="kpi-value" id="kpi-t" style="color:var(--accent)">—</div>
+  </div>
+</div>
+
+<script>
+// DATA_START
+const DATA = {js_data};
+// DATA_END
+
+function fmt(n) {{ return n.toLocaleString('ru-RU'); }}
+
+function rebuild() {{
+  var month = document.getElementById('sel-month').value;
+  var c = 0, k = 0;
+  DATA.forEach(function(r) {{
+    if (r.month !== month) return;
+    if (r.flag === 'Жалобы') c += r.cnt;
+    else if (r.flag === 'Консультации') k += r.cnt;
+  }});
+  document.getElementById('kpi-c').textContent = fmt(c);
+  document.getElementById('kpi-k').textContent = fmt(k);
+  document.getElementById('kpi-t').textContent = fmt(c + k);
+}}
+
+document.addEventListener('DOMContentLoaded', rebuild);
+rebuild();
+</script>
+""")
+```
+
+---
+
+### Быстрый чеклист для LLM перед выводом
+
+```
+□ Скелет: sys.argv[1], try/except, for sep in (";", ",")
+□ Кодировка: sys.stdout.reconfigure(encoding="utf-8") в начале
+□ Экранирование: html.escape() на все строки из данных
+□ JS-данные: json.dumps(..., ensure_ascii=False), не более 5000 строк
+□ DATA-маркеры: // DATA_START / const DATA = ...; / // DATA_END
+□ Нет сети: нет requests/urllib в Python-коде (CDN в HTML — OK)
+□ Нет записи: нет open(..., 'w')
+□ sys.exit(0) при любой ошибке данных, никогда sys.exit(1)
+```
 
