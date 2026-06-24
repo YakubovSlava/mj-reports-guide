@@ -228,25 +228,26 @@ ls style.css
 
 Правило: **никогда не используй `<script src="https://...">` в HTML-выводе скрипта.**
 
-Вместо этого:
-- **Plotly** — используй Python-библиотеку с встроенным JS:
-  ```python
-  import plotly.graph_objects as go
-  fig = go.Figure(...)
-  # include_plotlyjs=True встраивает весь JS прямо в HTML (~3 МБ, не нужен интернет)
-  print(fig.to_html(include_plotlyjs=True, full_html=False))
-  ```
-- **Графики без интернета** — используй `matplotlib` с выводом в base64:
-  ```python
-  import matplotlib.pyplot as plt, io, base64
-  fig, ax = plt.subplots()
-  ax.plot(x, y)
-  buf = io.BytesIO()
-  fig.savefig(buf, format='png', bbox_inches='tight')
-  img_b64 = base64.b64encode(buf.getvalue()).decode()
-  print(f'<img src="data:image/png;base64,{img_b64}" style="max-width:100%">')
-  plt.close(fig)
-  ```
+**Для интерактивных графиков** — Plotly с встроенным JS (рекомендуется):
+```python
+import plotly.graph_objects as go
+fig = go.Figure(...)
+# include_plotlyjs=True встраивает весь Plotly JS прямо в HTML (~3 МБ)
+# Полная интерактивность, работает без интернета
+print(fig.to_html(include_plotlyjs=True, full_html=False))
+```
+
+**Для статичных графиков** (если важен размер файла) — matplotlib + base64:
+```python
+import matplotlib.pyplot as plt, io, base64
+fig, ax = plt.subplots()
+ax.plot(x, y)
+buf = io.BytesIO()
+fig.savefig(buf, format='png', bbox_inches='tight')
+img_b64 = base64.b64encode(buf.getvalue()).decode()
+print(f'<img src="data:image/png;base64,{img_b64}" style="max-width:100%">')
+plt.close(fig)
+```
 
 ---
 
