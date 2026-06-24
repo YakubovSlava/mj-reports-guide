@@ -308,6 +308,8 @@ def main():
                         help="Не открывать браузер, только сохранить HTML")
     parser.add_argument("--out", default=None,
                         help="Сохранить HTML в файл (по умолчанию — временный файл)")
+    parser.add_argument("--save", action="store_true",
+                        help="Сохранить HTML рядом со скриптом (<имя_скрипта>.html)")
     args = parser.parse_args()
 
     script_path = Path(args.script).resolve()
@@ -379,9 +381,16 @@ def main():
         output        = report_output,
     )
 
-    # ── Сохраняем и открываем ─────────────────────────────────────────────────
+    # ── Определяем путь для сохранения ───────────────────────────────────────
     if args.out:
         out_path = Path(args.out)
+    elif args.save:
+        out_path = script_path.with_suffix(".html")
+    else:
+        out_path = None
+
+    # ── Сохраняем и открываем ────────────────────────────────────────────────
+    if out_path:
         out_path.write_text(html_content, encoding="utf-8")
         print(f"✓ Сохранено: {out_path.resolve()}", file=sys.stderr)
         if not args.no_open:
