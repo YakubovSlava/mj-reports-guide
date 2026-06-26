@@ -17,10 +17,16 @@
 
 Если у тебя есть доступ к инструментам (терминал, файлы) — используй их без лишних вопросов:
 - Сгенерируй синтетику (см. Шаг 2 — два пути в зависимости от источника)
-- Запусти превью: `python preview.py <script.py> <data.csv>`
+- Запусти превью: `python preview.py <script.py> tmp/<data.csv>`
 - Сохрани скрипт в файл, прочитай CSV, проверь структуру данных
 
 **Никогда не спрашивай пользователя, какой шаблон или формат выбрать для синтетики** — определяй сам из контекста задачи.
+
+**Структура файлов:**
+- Итоговый скрипт отчёта → корень (`my_report.py`)
+- Итоговый HTML → корень (`my_report.html`)
+- Все промежуточные файлы (синтетика, вспомогательные скрипты) → папка `tmp/`
+- Перед первым использованием создай папку: `mkdir -p tmp`
 
 **Когда всё же нужно уточнить у пользователя:**
 - Не хватает информации для ответа на вопрос (что именно показывать в отчёте)
@@ -95,7 +101,8 @@
 | Кликстрим, сессии, клики, выручка | `clickstream` |
 
 ```bash
-python generate_synthetic.py <format> --out data/test_<format>.csv
+mkdir -p tmp
+python generate_synthetic.py <format> --out tmp/test_<format>.csv
 ```
 
 ---
@@ -105,23 +112,25 @@ python generate_synthetic.py <format> --out data/test_<format>.csv
 Напиши и запусти Python-скрипт, который сам создаёт CSV (10–20 репрезентативных строк, не нули, структура из описания задачи):
 
 ```python
-# synthetic_gen.py
+# tmp/synthetic_gen.py
+from pathlib import Path
 import pandas as pd
 
+Path("tmp").mkdir(exist_ok=True)
 df = pd.DataFrame({
     "колонка_1": [...],
     "колонка_2": [...],
     # ... точная структура из описания
 })
-df.to_csv("data/test_custom.csv", index=False)
+df.to_csv("tmp/test_custom.csv", index=False)
 print("OK")
 ```
 
 ```bash
-python synthetic_gen.py
+python tmp/synthetic_gen.py
 ```
 
-Если терминала нет — сформируй CSV-содержимое прямо в ответе и попроси пользователя сохранить его в `data/test_custom.csv`.
+Если терминала нет — сформируй CSV-содержимое прямо в ответе и попроси пользователя сохранить его в `tmp/test_custom.csv`.
 
 ---
 
@@ -148,7 +157,7 @@ python synthetic_gen.py
 
 Сохрани скрипт в файл сам (если есть доступ) и запусти превью:
 ```bash
-python preview.py my_report.py data/test_<format>.csv
+python preview.py my_report.py tmp/test_<format>.csv
 ```
 HTML сохранится в текущую директорию как `my_report.html`. Браузер не открывается.
 Если доступа нет — дай пользователю команду и жди подтверждения.
@@ -164,7 +173,7 @@ HTML сохранится в текущую директорию как `my_repo
 
 **Если превью вернуло ошибку** (красный блок с текстом) — запусти диагностику сам:
 ```bash
-python preview.py my_report.py data/test.csv 2>&1 | head -30
+python preview.py my_report.py tmp/test_<format>.csv 2>&1 | head -30
 ```
 
 **⚠ Если в превью не видно шапки или стили не применились** — это значит, что файл
