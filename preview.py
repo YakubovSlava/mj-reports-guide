@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
-Запускает отчётный скрипт и открывает результат в браузере.
+Запускает отчётный скрипт и сохраняет HTML в текущую директорию.
 
 Использование:
     python preview.py <script.py> [data.csv]
+
+По умолчанию сохраняет <имя_скрипта>.html в текущую директорию.
+Браузер не открывается.
 
 Примеры:
     python preview.py examples/funnel_report.py data/test_funnel.csv
@@ -15,8 +18,6 @@ import sys
 import os
 import re
 import subprocess
-import tempfile
-import webbrowser
 import argparse
 from pathlib import Path
 
@@ -299,17 +300,13 @@ def _render(title: str, desc: str, css: str, theme_js: str,
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Локальный превью отчётного скрипта MJ"
+        description="Запускает отчётный скрипт MJ и сохраняет HTML в текущую директорию"
     )
     parser.add_argument("script", help="Путь к Python-скрипту отчёта")
     parser.add_argument("data",   nargs="?", default=None,
                         help="Путь к CSV-файлу данных (опционально)")
-    parser.add_argument("--no-open", action="store_true",
-                        help="Не открывать браузер, только сохранить HTML")
     parser.add_argument("--out", default=None,
-                        help="Сохранить HTML в файл (по умолчанию — временный файл)")
-    parser.add_argument("--save", action="store_true",
-                        help="Сохранить HTML рядом со скриптом (<имя_скрипта>.html)")
+                        help="Сохранить HTML по заданному пути")
     args = parser.parse_args()
 
     script_path = Path(args.script).resolve()
@@ -384,29 +381,12 @@ def main():
     # ── Определяем путь для сохранения ───────────────────────────────────────
     if args.out:
         out_path = Path(args.out)
-    elif args.save:
-        out_path = script_path.with_suffix(".html")
     else:
-        out_path = None
+        out_path = Path.cwd() / (script_path.stem + ".html")
 
-    # ── Сохраняем и открываем ────────────────────────────────────────────────
-    if out_path:
-        out_path.write_text(html_content, encoding="utf-8")
-        print(f"✓ Сохранено: {out_path.resolve()}", file=sys.stderr)
-        if not args.no_open:
-            webbrowser.open(out_path.resolve().as_uri())
-    else:
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".html", delete=False, encoding="utf-8",
-            prefix="mj_preview_"
-        ) as f:
-            f.write(html_content)
-            tmp_path = f.name
-        print(f"✓ Временный файл: {tmp_path}", file=sys.stderr)
-        if not args.no_open:
-            webbrowser.open(Path(tmp_path).as_uri())
-        else:
-            print(html_content)
+    # ── Сохраняем (браузер не открываем) ─────────────────────────────────────
+    out_path.write_text(html_content, encoding="utf-8")
+    print(f"✓ Сохранено: {out_path.resolve()}", file=sys.stderr)
 
 
 if __name__ == "__main__":

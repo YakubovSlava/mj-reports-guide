@@ -150,12 +150,8 @@ python synthetic_gen.py
 ```bash
 python preview.py my_report.py data/test_<format>.csv
 ```
-Откроется браузер. Если доступа нет — дай пользователю команду и жди результата.
-
-Для сохранения HTML рядом со скриптом (поделиться с коллегой):
-```bash
-python preview.py my_report.py data/test_<format>.csv --save
-```
+HTML сохранится в текущую директорию как `my_report.html`. Браузер не открывается.
+Если доступа нет — дай пользователю команду и жди подтверждения.
 
 ---
 
@@ -168,7 +164,7 @@ python preview.py my_report.py data/test_<format>.csv --save
 
 **Если превью вернуло ошибку** (красный блок с текстом) — запусти диагностику сам:
 ```bash
-python preview.py my_report.py data/test.csv --no-open 2>&1 | head -30
+python preview.py my_report.py data/test.csv 2>&1 | head -30
 ```
 
 **⚠ Если в превью не видно шапки или стили не применились** — это значит, что файл
